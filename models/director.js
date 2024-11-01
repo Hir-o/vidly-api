@@ -33,3 +33,4 @@ function validateDirector(director)
 
 exports.Director = Director;
 exports.validate = validateDirector;
+exports.directorSchema = directorSchema;

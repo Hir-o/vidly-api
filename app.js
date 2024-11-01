@@ -9,6 +9,7 @@ const movies = require('./routes/movies');
 const tvShows = require('./routes/tvShows');
 const customers = require('./routes/customers');
 const directors = require('./routes/directors');
+const genres = require('./routes/genres');
 const home = require('./routes/home');
 const logger = require('./middleware/logger');
 const app = express();
@@ -29,6 +30,7 @@ app.use('/api/movies', movies);
 app.use('/api/tvShows', tvShows);
 app.use('/api/customers', customers);
 app.use('/api/directors', directors);
+app.use('/api/genres', genres);
 app.use('/', home)
  
 //console.log('Application Name: ' + config.get('name'));
