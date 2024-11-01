@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Director, validate } = require('../models/director');
+const { Director, validateDirector } = require('../models/director');
 
 router.get('/', async(req, res) => {
     try{
@@ -23,7 +23,7 @@ router.get('/:id', async(req,  res) => {
 });
 
 router.post('/', async(req, res) => {
-    const { error } = validate(req.body);
+    const { error } = validateDirector(req.body);
     if (error) res.status(400).send(error.details[0].message);
 
     let director = new Director({
@@ -42,7 +42,7 @@ router.post('/', async(req, res) => {
 router.put('/:id', async(req, res) => {
     const id = req.params.id;
     
-    const { error } = validate(req.body);
+    const { error } = validateDirector(req.body);
     if (error) res.status(400).send(error.details[0].message);
 
     try{

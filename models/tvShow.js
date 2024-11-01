@@ -40,4 +40,4 @@ function validateTvShowName(tvShow)
 }
 
 exports.TvShow = TvShow;
-exports.validate = validateTvShowName;
+exports.validateTvShow = validateTvShowName;

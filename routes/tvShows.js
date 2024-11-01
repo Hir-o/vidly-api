@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const dbDebugger = require('debug')('app:db');
-const {TvShow, validate} = require('../models/tvShow');
+const {TvShow, validateTvShow} = require('../models/tvShow');
 
 router.get('/', async (req, res) => {
     try{
@@ -24,7 +24,7 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const { error } = validate(req.body);
+    const { error } = validateTvShow(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
     let tvShow = new TvShow({
@@ -45,7 +45,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
     const id = req.params.id;
     
-    const { error } = validate(req.body);
+    const { error } = validateTvShow(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
     try{

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const {Movie, validate} = require('../models/movie');
+const {Movie, validateMovie} = require('../models/movie');
+const {Genre, validateGenre } = require('../models/genre');
 
 router.get('/', async (req, res) => {
     try{
@@ -23,15 +24,22 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const {error} = validate(req.body);
+    const {error} = validateMovie(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
-    let movie = new Movie({
-        name: req.body.name,
-        genre: req.body.genre,
-        rating: req.body.rating,
-        releaseDate: req.body.releaseDate
-    });
+    let genres = [];
+
+    for (genreId of req.body.genreIds){
+        genre = await Genre.findById(genreId);
+        let { genreValidationError } = validateGenre(genre); 
+        if (!genre) return res.status(404).send(genreValidationError.details[0].message);
+        genres.push(genre);
+    }
+
+    let movieObject = req.body;
+    movieObject.genres = genres;
+
+    let movie = new Movie(movieObject);
 
     try{
         movie = await movie.save();
@@ -44,16 +52,31 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
     const id = req.params.id;
 
-    const {error} = validate(req.body);
+    const {error} = validateMovie(req.body);
     if (error) return res.status(400).send(error.details[0].message);
+
+    let genres = [];
+
+    for (genreId of req.body.genreIds){
+        genre = await Genre.findById(genreId);
+        let { genreValidationError } = validateGenre(genre); 
+        if (!genre) return res.status(404).send(genreValidationError.details[0].message);
+        genres.push(genre);
+    }
+
+    let movieObject = req.body;
+    movieObject.genres = genres;
     
     try{
         const result = await Movie.findByIdAndUpdate(id, {
             $set: {
-                name: req.body.name,
-                genre: req.body.genre,
-                rating: req.body.rating,
-                releaseDate: req.body.releaseDate
+                name: movieObject.name,
+                rating: movieObject.rating,
+                releaseDate: movieObject.releaseDate,
+                directors: movieObject.directors,
+                genres: movieObject.genres,
+                numbersInStock: movieObject.numbersInStock,
+                dailyRentalRate: movieObject.dailyRentalRate,
             }
         }, {new: true});
         res.send(result);
