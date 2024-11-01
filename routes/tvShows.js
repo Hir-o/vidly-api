@@ -1,33 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const Joi = require('joi');
-const mongoose = require('mongoose');
 const dbDebugger = require('debug')('app:db');
-
-const tvShowSchema = new mongoose.Schema({
-    name:{
-        type: String,
-        required: true,
-        minLength: 3,
-        maxLength: 255
-    },
-    genre:{
-        type: Array,
-        validate:{
-            validator: function(v){return v.length > 0},
-            message: 'A movie should have at least one category!'
-        }
-    },
-    rating:{
-        type: Number,
-        required: true,
-        min: 0,
-        max: 10
-    },
-    firstEpisodeDate: {type: Date, default: Date.now},
-});
-
-const TvShow = mongoose.model('TvShow', tvShowSchema);
+const {TvShow, validate} = require('../models/tvShow');
 
 router.get('/', async (req, res) => {
     try{
@@ -50,6 +24,9 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
+    const { error } = validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
     let tvShow = new TvShow({
         name: req.body.name,
         genre: req.body.genre,
@@ -67,6 +44,10 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     const id = req.params.id;
+    
+    const { error } = validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
     try{
         let tvShow = await TvShow.findByIdAndUpdate(id, {
             $set: {
@@ -92,14 +73,5 @@ router.delete('/:id', async (req, res) => {
         res.status(500).send(`An error occurred while trying to delete the tv show with id: ${id}`);
     }
 });
-
-function validateTvShowName(tvShowName)
-{
-    let scheme = Joi.object({
-        name: Joi.string().required().min(3)
-    });
-
-    return scheme.validate({ name: tvShowName });
-}
 
 module.exports = router;

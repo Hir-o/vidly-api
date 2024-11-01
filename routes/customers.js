@@ -1,46 +1,6 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const router = express.Router();
-
-const customerSchema = mongoose.Schema({
-    firstName:{
-        type: String,
-        required: true,
-        minLength: 3,
-        maxLength: 255
-    },
-    lastName:{
-        type: String,
-        required: true,
-        minLength: 3,
-        maxLength: 255
-    },
-    email:{
-        type: String,
-        trim: true,
-        lowercase: true,
-        unique: true,
-        validate:{
-            validator: function(v){
-                return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
-            },
-            message: 'Please enter a valid email'
-        }
-    },
-    phone:{
-        type: String,
-        trim: true,
-        unique: true,
-    },
-    category:{
-        type: String,
-        required: true,
-        trim: true,
-        enum: ['Bronze', 'Silver', 'Gold']
-    }
-});
-
-const Customer = mongoose.model('Customer', customerSchema); 
+const {Customer, validate} = require('../models/customer');
 
 router.get('/', async(req, res) => {
     try{
@@ -63,6 +23,9 @@ router.get('/:id', async(req, res) => {
 });
 
 router.post('/', async(req, res) => {
+    const { error } = validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
     const customer = new Customer({
         firstName: req.body.firstName,
         lastName: req.body.lastName,
@@ -82,6 +45,10 @@ router.post('/', async(req, res) => {
 
 router.put('/:id', async(req, res) => {
     const customerId = req.params.id;
+
+    const { error } = validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
     try{
         const customer = await Customer.findByIdAndUpdate(customerId, {
             $set:{
@@ -92,6 +59,7 @@ router.put('/:id', async(req, res) => {
                 category: req.body.category
             }
         }, {new: true});
+
         res.send(customer);
     } catch(ex){
         res.status(500).send(`An error occurred while updating the customer with id: ${customerId}.`);

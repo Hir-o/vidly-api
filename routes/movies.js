@@ -1,33 +1,6 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const dbDebugger = require('debug')('app:db');
 const router = express.Router();
-const Joi = require('joi');
-
-const movieSchema = new mongoose.Schema({
-    name:{
-        type: String,
-        required: true,
-        minLength: 3,
-        maxLength: 255
-    },
-    genre:{
-        type: Array,
-        validate:{
-            validator: function(v){return v.length > 0},
-            message: 'A movie should have at least one genre!'
-        }
-    },
-    rating:{
-        type: Number,
-        required: true,
-        min: 0,
-        max: 10
-    },
-    releaseDate: {type: Date, default: Date.now},
-});
-
-const Movie = mongoose.model('Movie', movieSchema);
+const {Movie, validate} = require('../models/movie');
 
 router.get('/', async (req, res) => {
     try{
@@ -40,7 +13,6 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
     const id = req.params.id;
-
     try{
         const movie = await Movie.findById(id);
         if (!movie) return res.status(404).send(`The movie with the given ID:${id} was not found.`);
@@ -51,6 +23,9 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
+    const {error} = validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
     let movie = new Movie({
         name: req.body.name,
         genre: req.body.genre,
@@ -68,6 +43,10 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     const id = req.params.id;
+
+    const {error} = validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+    
     try{
         const result = await Movie.findByIdAndUpdate(id, {
             $set: {
@@ -93,13 +72,5 @@ router.delete('/:id', async (req, res) => {
         res.status(404).send(`The movie with the given ID:${id} was not found.`);
     }
 });
-
-function validateMovieName(movieName){
-    const scheme = Joi.object({
-        name: Joi.string().required().min(3)
-    });
-
-    return scheme.validate({name: movieName});
-}
 
 module.exports = router;
