@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {Movie, validateMovie} = require('../models/movie');
 const {Genre, validateGenre } = require('../models/genre');
+const {Country, validateCountry} = require('../models/country');
 
 router.get('/', async (req, res) => {
     try{
@@ -29,15 +30,28 @@ router.post('/', async (req, res) => {
 
     let genres = [];
 
-    for (genreId of req.body.genreIds){
-        genre = await Genre.findById(genreId);
-        let { genreValidationError } = validateGenre(genre); 
-        if (!genre) return res.status(404).send(genreValidationError.details[0].message);
-        genres.push(genre);
+    if(req.body.genreIds){
+        for (genreId of req.body.genreIds){
+            genre = await Genre.findById(genreId);
+            if (!genre) return res.status(404).send(`Failed to find the genre with id: ${genreId} while inserting a new movie.`);
+            let { genreValidationError } = validateGenre(genre); 
+            if (genreValidationError) return res.status(400).send(genreValidationError.details[0].message);
+            genres.push(genre);
+        }
+    }
+
+    let country = new Country();
+    const countryId = req.body.countryId;
+    if (countryId){
+        country = await Country.findById(countryId);
+        if (!country) return res.status(404).send(`Failed to find the country with id: ${countryId} while inserting a new movie.`);
+        const { countryValidationError } = validateCountry(country);
+        if (countryValidationError) return res.status(400).send(countryValidationError.details[0].message);
     }
 
     let movieObject = req.body;
     movieObject.genres = genres;
+    movieObject.country = country;
 
     let movie = new Movie(movieObject);
 
@@ -57,15 +71,28 @@ router.put('/:id', async (req, res) => {
 
     let genres = [];
 
-    for (genreId of req.body.genreIds){
-        genre = await Genre.findById(genreId);
-        let { genreValidationError } = validateGenre(genre); 
-        if (!genre) return res.status(404).send(genreValidationError.details[0].message);
-        genres.push(genre);
+    if (req.body.genreIds){
+        for (genreId of req.body.genreIds){
+            genre = await Genre.findById(genreId);
+            if (!genre) return res.status(404).send(`Failed to find the genre with id: ${genreId} while trying to insert a new movie.`);
+            let { genreValidationError } = validateGenre(genre); 
+            if (genreValidationError) return res.status(404).send(genreValidationError.details[0].message);
+            genres.push(genre);
+        }
+    }
+
+    let country = new Country();
+    const countryId = req.body.countryId;
+    if (countryId){
+        country = await Country.findById(countryId);
+        if (!country) return res.status(404).send(`Failed to find the country with id: ${countryId} while inserting a new movie.`);
+        const { countryValidationError } = validateCountry(country);
+        if (countryValidationError) return res.status(400).send(countryValidationError.details[0].message);
     }
 
     let movieObject = req.body;
     movieObject.genres = genres;
+    movieObject.country = country;
     
     try{
         const result = await Movie.findByIdAndUpdate(id, {
@@ -77,6 +104,7 @@ router.put('/:id', async (req, res) => {
                 genres: movieObject.genres,
                 numbersInStock: movieObject.numbersInStock,
                 dailyRentalRate: movieObject.dailyRentalRate,
+                country: movieObject.country
             }
         }, {new: true});
         res.send(result);

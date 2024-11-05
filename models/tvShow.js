@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const Joi = require('joi');
+const { genreSchema } = require('./genre');
+const { countrySchema } = require('./country');
 
 const tvShowSchema = new mongoose.Schema({
     name:{
@@ -8,12 +10,9 @@ const tvShowSchema = new mongoose.Schema({
         minLength: 3,
         maxLength: 255
     },
-    genre:{
-        type: Array,
-        validate:{
-            validator: function(v){return v.length > 0},
-            message: 'A movie should have at least one category!'
-        }
+    genres:{
+        type: [genreSchema],
+        required: true
     },
     rating:{
         type: Number,
@@ -22,11 +21,14 @@ const tvShowSchema = new mongoose.Schema({
         max: 10
     },
     firstEpisodeDate: {type: Date, default: Date.now},
+    country: {
+        type: countrySchema
+    }
 });
 
 const TvShow = mongoose.model('TvShow', tvShowSchema);
 
-function validateTvShowName(tvShow)
+function validateTvShow(tvShow)
 {
     let schema = Joi.object({
         name: Joi.string().required().min(3),
@@ -40,4 +42,5 @@ function validateTvShowName(tvShow)
 }
 
 exports.TvShow = TvShow;
-exports.validateTvShow = validateTvShowName;
+exports.validateTvShow = validateTvShow;
+exports.tvShowSchema = tvShowSchema;

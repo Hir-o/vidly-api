@@ -1,3 +1,5 @@
+const Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
 const startupDebugger = require('debug')('app:startup');
 const dbDebugger = require('debug')('app:db');
 const config = require('config');
@@ -10,6 +12,8 @@ const tvShows = require('./routes/tvShows');
 const customers = require('./routes/customers');
 const directors = require('./routes/directors');
 const genres = require('./routes/genres');
+const countries = require('./routes/countries');
+const rentals = require('./routes/rentals');
 const home = require('./routes/home');
 const logger = require('./middleware/logger');
 const app = express();
@@ -31,6 +35,8 @@ app.use('/api/tvShows', tvShows);
 app.use('/api/customers', customers);
 app.use('/api/directors', directors);
 app.use('/api/genres', genres);
+app.use('/api/countries', countries);
+app.use('/api/rentals', rentals);
 app.use('/', home)
  
 //console.log('Application Name: ' + config.get('name'));

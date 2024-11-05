@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Joi = require('joi');
 const { directorSchema } = require('./director')
 const { genreSchema } = require('./genre');
+const { countrySchema } = require('./country');
 
 const movieSchema = new mongoose.Schema({
     name:{
@@ -18,7 +19,7 @@ const movieSchema = new mongoose.Schema({
     },
     releaseDate: {
         type: Date,
-         default: Date.now
+        default: Date.now
     },
     directors: {
         type: [directorSchema],
@@ -35,6 +36,9 @@ const movieSchema = new mongoose.Schema({
     dailyRentalRate:{
         type: Number,
         min: 0
+    },
+    country:{
+        type: countrySchema
     }
 });
 
@@ -59,3 +63,4 @@ function validateMovie(movie){
 
 exports.Movie = Movie;
 exports.validateMovie = validateMovie;
+exports.movieSchema = movieSchema;

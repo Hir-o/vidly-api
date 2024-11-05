@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const dbDebugger = require('debug')('app:db');
 const {TvShow, validateTvShow} = require('../models/tvShow');
+const {Genre, validateGenre} = require('../models/genre');
+const {Country, validateCountry} = require('../models/country');
 
 router.get('/', async (req, res) => {
     try{
@@ -27,12 +29,29 @@ router.post('/', async (req, res) => {
     const { error } = validateTvShow(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
-    let tvShow = new TvShow({
-        name: req.body.name,
-        genre: req.body.genre,
-        rating: req.body.rating,
-        firstEpisodeDate: req.body.firstEpisodeDate
-    });
+    let genres = [];
+    for(genreId of req.body.genreIds){
+        const genre = await Genre.findById(genreId);
+        if (!genre) return res.status(404).send(`Could not find the genre with id: ${genreId} while trying to insert a new Tv Show.`);
+        const { genreError } = validateGenre(genre);
+        if (genreError) res.status(400).send(genreError.details[0].message);
+        genres.push(genre);
+    }
+
+    let country = new Country();
+    const countryId = req.body.countryId;
+    if (countryId){
+        country = await Country.findById(countryId);
+        if (!country) return res.status(404).send(`Failed to find the country with id: ${countryId} while inserting a new movie.`);
+        const { countryValidationError } = validateCountry(country);
+        if (countryValidationError) return res.status(400).send(countryValidationError.details[0].message);
+    }
+
+    let tvShowObject = req.body;
+    tvShowObject.genres = genres;
+    tvShowObject.country = country;
+    
+    let tvShow = new TvShow(tvShowObject);
 
     try{
         tvShow = await tvShow.save();
@@ -48,13 +67,36 @@ router.put('/:id', async (req, res) => {
     const { error } = validateTvShow(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
+    let genres = [];
+    for(genreId of req.body.genreIds){
+        const genre = await Genre.findById(genreId);
+        if (!genre) return res.status(404).send(`Could not find the genre with id: ${genreId} while trying to insert a new Tv Show.`);
+        const { genreError } = validateGenre(genre);
+        if (genreError) res.status(400).send(genreError.details[0].message);
+        genres.push(genre);
+    }
+
+    let country = new Country();
+    const countryId = req.body.countryId;
+    if (countryId){
+        country = await Country.findById(countryId);
+        if (!country) return res.status(404).send(`Failed to find the country with id: ${countryId} while inserting a new movie.`);
+        const { countryValidationError } = validateCountry(country);
+        if (countryValidationError) return res.status(400).send(countryValidationError.details[0].message);
+    }
+
+    let tvShowObject = req.body;
+    tvShowObject.genres = genres;
+    tvShowObject.country = country;
+
     try{
         let tvShow = await TvShow.findByIdAndUpdate(id, {
             $set: {
-                name: req.body.name,
-                genre: req.body.genre,
-                rating: req.body.rating,
-                firstEpisodeDate: req.body.firstEpisodeDate
+                name: tvShowObject.name,
+                genres: tvShowObject.genres,
+                rating: tvShowObject.rating,
+                firstEpisodeDate: tvShowObject.firstEpisodeDate,
+                country: tvShowObject.country
             }
         }, {new: true});
         res.send(tvShow);

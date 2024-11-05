@@ -60,3 +60,4 @@ function validateCustomer(customer)
 
 exports.Customer = Customer;
 exports.validateCustomer = validateCustomer;
+exports.customerSchema = customerSchema;
