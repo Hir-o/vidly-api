@@ -1,32 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const mongoose = require('mongoose');
+const asyncMiddleware = require('../middleware/async');
 const {Rental, validateRental} = require('../models/rental');
 const {Customer} = require('../models/customer');
 const {Movie} = require('../models/movie');
 
-router.get('/', auth, async(req, res) => {
-    try{
-        const rentals = await Rental.find().sort({rentalStartDate: 1});
-        res.send(rentals);
-    } catch(ex){
-        res.status(500).send(ex.message);
-    }
-});
+router.get('/', auth, asyncMiddleware(async(req, res) => {
+    const rentals = await Rental.find().sort({rentalStartDate: 1});
+    res.send(rentals);
+}));
 
-router.get('/:id', auth, async(req, res) => {
+router.get('/:id', auth, asyncMiddleware(async(req, res) => {
     const id = req.params.id;
-    try{
-        const rental = await Rental.findById(id);
-        if (!rental) return res.status(404).send(`Could not find the rental with id: ${id}.`);
-        res.send(rental);
-    } catch(ex){
-        res.status(500).send(ex.message);
-    }
-});
+    const rental = await Rental.findById(id);
+    if (!rental) return res.status(404).send(`Could not find the rental with id: ${id}.`);
+    res.send(rental);
+}));
 
-router.post('/', auth, async(req, res) => {
+router.post('/', auth, asyncMiddleware(async(req, res) => {
     const { error } = validateRental(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
@@ -46,17 +38,13 @@ router.post('/', auth, async(req, res) => {
         }
     });
 
-    try{
-        movie.numbersInStock--;;
-        const result = await rental.save();
-        await movie.save();
-        res.send(result);
-    } catch(ex){
-        res.status(500).send(ex.message);
-    }
-});
+    movie.numbersInStock--;;
+    const result = await rental.save();
+    await movie.save();
+    res.send(result);
+}));
 
-router.put('/:id', auth, async(req, res) => {
+router.put('/:id', auth, asyncMiddleware(async(req, res) => {
     const id = req.params.id;
     const { error } = validateRental(req.body);
     if (error) return res.status(400).send(error.details[0].message);
@@ -77,37 +65,29 @@ router.put('/:id', auth, async(req, res) => {
 
     if (new Date() > rental.returnDate) rental.status = 'Overdue';
 
-    try{
-        if (rental.status === 'Completed'){
-            movie.numbersInStock++;
-            await movie.save();
+    if (rental.status === 'Completed'){
+        movie.numbersInStock++;
+        await movie.save();
+    }
+
+    let newRental = await Rental.findByIdAndUpdate(id, {
+        $set:{
+            customer: rental.customer,
+            movie: rental.movie,
+            rentalStartDate: rental.rentalStartDate,
+            rentalEndDate: rental.rentalEndDate,
+            returnDate: rental.returnDate,
+            status: rental.status,
         }
+    }, {new: true});
+    
+    res.send(newRental);
+}));
 
-        let newRental = await Rental.findByIdAndUpdate(id, {
-            $set:{
-                customer: rental.customer,
-                movie: rental.movie,
-                rentalStartDate: rental.rentalStartDate,
-                rentalEndDate: rental.rentalEndDate,
-                returnDate: rental.returnDate,
-                status: rental.status,
-            }
-        }, {new: true});
-        
-        res.send(newRental);
-    } catch(ex){
-        res.status(500).send(ex.message);
-    }
-})
-
-router.delete('/:id', auth, async(req, res) => {
+router.delete('/:id', auth, asyncMiddleware(async(req, res) => {
     const id = req.body.id;
-    try{
-        const rental = await Rental.findByIdAndDelete(id);
-        res.send(rental);
-    } catch(ex){
-        res.status(500).send(ex.message);
-    }
-});
+    const rental = await Rental.findByIdAndDelete(id);
+    res.send(rental);
+}));
 
 module.exports = router;

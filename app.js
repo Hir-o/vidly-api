@@ -16,6 +16,7 @@ const rentals = require('./routes/rentals');
 const users = require('./routes/users');
 const register = require('./routes/register');
 const auth = require('./routes/auth');
+const error = require('./middleware/error');
 const home = require('./routes/home');
 const logger = require('./middleware/logger');
 const app = express();
@@ -43,10 +44,7 @@ app.use('/api/users', users);
 app.use('/api/register', register);
 app.use('/api/auth', auth);
 app.use('/', home)
- 
-//console.log('Application Name: ' + config.get('name'));
-//console.log('Mail Server: ' + config.get('mail.host'));
-//console.log('Mail Password: ' + config.get('mail.password'));
+app.use(error);
 
 if (app.get('env') === 'development'){
     app.use(morgan('tiny'));
