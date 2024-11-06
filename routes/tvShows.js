@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const dbDebugger = require('debug')('app:db');
+const auth = require('../middleware/auth');
 const {TvShow, validateTvShow} = require('../models/tvShow');
 const {Genre, validateGenre} = require('../models/genre');
 const {Country, validateCountry} = require('../models/country');
@@ -25,7 +25,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
     const { error } = validateTvShow(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
@@ -61,7 +61,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
     const id = req.params.id;
     
     const { error } = validateTvShow(req.body);
@@ -105,7 +105,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
     const id = req.params.id;
     try{
         const deletedTvShow = await TvShow.findByIdAndDelete(id);

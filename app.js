@@ -2,7 +2,6 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const startupDebugger = require('debug')('app:startup');
 const dbDebugger = require('debug')('app:db');
-const config = require('config');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const express = require('express');
@@ -14,6 +13,9 @@ const directors = require('./routes/directors');
 const genres = require('./routes/genres');
 const countries = require('./routes/countries');
 const rentals = require('./routes/rentals');
+const users = require('./routes/users');
+const register = require('./routes/register');
+const auth = require('./routes/auth');
 const home = require('./routes/home');
 const logger = require('./middleware/logger');
 const app = express();
@@ -37,6 +39,9 @@ app.use('/api/directors', directors);
 app.use('/api/genres', genres);
 app.use('/api/countries', countries);
 app.use('/api/rentals', rentals);
+app.use('/api/users', users);
+app.use('/api/register', register);
+app.use('/api/auth', auth);
 app.use('/', home)
  
 //console.log('Application Name: ' + config.get('name'));
@@ -46,6 +51,11 @@ app.use('/', home)
 if (app.get('env') === 'development'){
     app.use(morgan('tiny'));
     startupDebugger('Morgan enabled...');
+}
+
+if (!process.env.JWT_KEY){
+    console.error('FATAL ERROR: JWT_KEY is not defined');
+    process.exit(1);
 }
 
 dbDebugger('Connected to the database...');

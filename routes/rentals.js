@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const auth = require('../middleware/auth');
 const mongoose = require('mongoose');
 const {Rental, validateRental} = require('../models/rental');
 const {Customer} = require('../models/customer');
 const {Movie} = require('../models/movie');
 
-router.get('/', async(req, res) => {
+router.get('/', auth, async(req, res) => {
     try{
         const rentals = await Rental.find().sort({rentalStartDate: 1});
         res.send(rentals);
@@ -14,7 +15,7 @@ router.get('/', async(req, res) => {
     }
 });
 
-router.get('/:id', async(req, res) => {
+router.get('/:id', auth, async(req, res) => {
     const id = req.params.id;
     try{
         const rental = await Rental.findById(id);
@@ -25,7 +26,7 @@ router.get('/:id', async(req, res) => {
     }
 });
 
-router.post('/', async(req, res) => {
+router.post('/', auth, async(req, res) => {
     const { error } = validateRental(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
@@ -55,7 +56,7 @@ router.post('/', async(req, res) => {
     }
 });
 
-router.put('/:id', async(req, res) => {
+router.put('/:id', auth, async(req, res) => {
     const id = req.params.id;
     const { error } = validateRental(req.body);
     if (error) return res.status(400).send(error.details[0].message);
@@ -99,7 +100,7 @@ router.put('/:id', async(req, res) => {
     }
 })
 
-router.delete('/:id', async(req, res) => {
+router.delete('/:id', auth, async(req, res) => {
     const id = req.body.id;
     try{
         const rental = await Rental.findByIdAndDelete(id);

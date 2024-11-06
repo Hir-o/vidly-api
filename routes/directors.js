@@ -1,4 +1,5 @@
 const express = require('express');
+const auth = require('../middleware/auth');
 const router = express.Router();
 const { Director, validateDirector } = require('../models/director');
 
@@ -22,7 +23,7 @@ router.get('/:id', async(req,  res) => {
     }
 });
 
-router.post('/', async(req, res) => {
+router.post('/', auth, async(req, res) => {
     const { error } = validateDirector(req.body);
     if (error) res.status(400).send(error.details[0].message);
 
@@ -39,7 +40,7 @@ router.post('/', async(req, res) => {
     }
 });
 
-router.put('/:id', async(req, res) => {
+router.put('/:id', auth, async(req, res) => {
     const id = req.params.id;
     
     const { error } = validateDirector(req.body);
@@ -59,7 +60,7 @@ router.put('/:id', async(req, res) => {
     }
 });
 
-router.delete('/:id', async(req, res) => {
+router.delete('/:id', auth, async(req, res) => {
     const id = req.params.id;
     try{
         const deletedDirector = await Director.findByIdAndDelete(id);
