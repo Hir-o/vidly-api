@@ -1,7 +1,6 @@
 const express = require('express');
 const auth = require('../middleware/auth');
 const router = express.Router();
-const asyncMiddleware = require('../middleware/async');
 const { Director, validateDirector } = require('../models/director');
 
 router.get('/', async(req, res) => {

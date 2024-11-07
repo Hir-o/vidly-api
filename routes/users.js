@@ -3,27 +3,26 @@ const bcrypt = require('bcrypt');
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const asyncMiddleware = require('../middleware/async');
 const { User, validateUser } = require('../models/user');
 
-router.get('/', auth, asyncMiddleware(async(req, res) => {
+router.get('/', auth, async(req, res) => {
     const users = await User.find().sort({_id: 1});
     res.send(users);
-}));
+});
 
-router.get('/:id', auth, asyncMiddleware(async(req, res) => {
+router.get('/:id', auth, async(req, res) => {
     const id = req.params.id;
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).send(`Could not find the user with id: ${id}`);
     return res.send(user);
-}));
+});
 
-router.get('/check/me', auth, asyncMiddleware(async(req, res) => {
+router.get('/check/me', auth, async(req, res) => {
     const user = await User.findById(req.user._id).select('-password');
     res.send(user);
-}));
+});
 
-router.put('/:id', auth, asyncMiddleware(async(req, res) => {
+router.put('/:id', auth, async(req, res) => {
     const { error } = validateUser(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
@@ -46,12 +45,12 @@ router.put('/:id', auth, asyncMiddleware(async(req, res) => {
     }, {new: true});
     
     res.send(_.pick(user, ['name', 'email']));
-}));
+});
 
-router.delete('/:id', auth, asyncMiddleware(async(req, res) => {
+router.delete('/:id', auth, async(req, res) => {
     const id = req.params.id;
     const deletedUser = await User.findByIdAndDelete(id);
     res.send(deletedUser);
-}));
+});
 
 module.exports = router;

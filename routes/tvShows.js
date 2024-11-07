@@ -1,24 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const asyncMiddleware = require('../middleware/async');
 const {TvShow, validateTvShow} = require('../models/tvShow');
 const {Genre, validateGenre} = require('../models/genre');
 const {Country, validateCountry} = require('../models/country');
 
-router.get('/', asyncMiddleware(async (req, res) => {
+router.get('/', async (req, res) => {
     const tvShows = await TvShow.find().sort({name : 1});
     res.send(tvShows);
-}));
+});
 
-router.get('/:id', asyncMiddleware(async (req, res) => {
+router.get('/:id', async (req, res) => {
     const id = req.params.id;
     const tvShow = await TvShow.findById(id);
     if (!tvShow) return res.status(404).send(`TV Show with the given ID: ${id} was not found.`);
     res.send(tvShow);
-}));
+});
 
-router.post('/', auth, asyncMiddleware(async (req, res) => {
+router.post('/', auth, async (req, res) => {
     const { error } = validateTvShow(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
@@ -47,9 +46,9 @@ router.post('/', auth, asyncMiddleware(async (req, res) => {
     let tvShow = new TvShow(tvShowObject);
     tvShow = await tvShow.save();
     res.send(tvShow);
-}));
+});
 
-router.put('/:id', auth, asyncMiddleware(async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
     const id = req.params.id;
     
     const { error } = validateTvShow(req.body);
@@ -87,13 +86,13 @@ router.put('/:id', auth, asyncMiddleware(async (req, res) => {
         }
     }, {new: true});
     res.send(tvShow);
-}));
+});
 
-router.delete('/:id', auth, asyncMiddleware(async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
     const id = req.params.id;
     const deletedTvShow = await TvShow.findByIdAndDelete(id);
     if (!deletedTvShow) return res.status(404).send(`The tv show with id: ${id} could not be deleted.`);
     res.send(deletedTvShow);
-}));
+});
 
 module.exports = router;

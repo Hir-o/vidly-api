@@ -1,24 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const asyncMiddleware = require('../middleware/async');
 const {Rental, validateRental} = require('../models/rental');
 const {Customer} = require('../models/customer');
 const {Movie} = require('../models/movie');
 
-router.get('/', auth, asyncMiddleware(async(req, res) => {
+router.get('/', auth, async(req, res) => {
     const rentals = await Rental.find().sort({rentalStartDate: 1});
     res.send(rentals);
-}));
+});
 
-router.get('/:id', auth, asyncMiddleware(async(req, res) => {
+router.get('/:id', auth, async(req, res) => {
     const id = req.params.id;
     const rental = await Rental.findById(id);
     if (!rental) return res.status(404).send(`Could not find the rental with id: ${id}.`);
     res.send(rental);
-}));
+});
 
-router.post('/', auth, asyncMiddleware(async(req, res) => {
+router.post('/', auth, async(req, res) => {
     const { error } = validateRental(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
@@ -42,9 +41,9 @@ router.post('/', auth, asyncMiddleware(async(req, res) => {
     const result = await rental.save();
     await movie.save();
     res.send(result);
-}));
+});
 
-router.put('/:id', auth, asyncMiddleware(async(req, res) => {
+router.put('/:id', auth, async(req, res) => {
     const id = req.params.id;
     const { error } = validateRental(req.body);
     if (error) return res.status(400).send(error.details[0].message);
@@ -82,12 +81,12 @@ router.put('/:id', auth, asyncMiddleware(async(req, res) => {
     }, {new: true});
     
     res.send(newRental);
-}));
+});
 
-router.delete('/:id', auth, asyncMiddleware(async(req, res) => {
+router.delete('/:id', auth, async(req, res) => {
     const id = req.body.id;
     const rental = await Rental.findByIdAndDelete(id);
     res.send(rental);
-}));
+});
 
 module.exports = router;
