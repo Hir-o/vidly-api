@@ -5,10 +5,10 @@ const {Movie, validateMovie} = require('../models/movie');
 const {Genre, validateGenre } = require('../models/genre');
 const {Country, validateCountry} = require('../models/country');
 
-router.get('/', asyncMiddleware(async (req, res) => {
+router.get('/', async (req, res) => {
     const movies = await Movie.find();
     res.send(movies)
-}));
+});
 
 router.get('/:id', async (req, res) => {
     const id = req.params.id;
