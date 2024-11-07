@@ -33,7 +33,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(helmet());
-app.use(logger);
 app.use('/api/movies', movies);
 app.use('/api/tvShows', tvShows);
 app.use('/api/customers', customers);
