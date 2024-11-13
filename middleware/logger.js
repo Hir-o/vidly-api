@@ -9,7 +9,7 @@ const logger = winston.createLogger({
     winston.format.simple()
   ),
   transports: [
-    new winston.transports.Console(), // Log to the console
+    new winston.transports.Console({ colorize: true, prettyPrint: true }), // Log to the console
     new winston.transports.File({ filename: 'logs/combined.log' }), // Log to a file
     new winston.transports.MongoDB({ db: 'mongodb://localhost/tv_db', level: 'error' })
   ]
