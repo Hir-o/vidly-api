@@ -6,6 +6,7 @@ const dbDebugger = require('debug')('app:db');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const express = require('express');
+const winston = require('winston');
 const mongoose = require('mongoose');
 const movies = require('./routes/movies');
 const tvShows = require('./routes/tvShows');
@@ -21,6 +22,13 @@ const error = require('./middleware/error');
 const home = require('./routes/home');
 const logger = require('./middleware/logger');
 const app = express();
+
+winston.exceptions.handle(new winston.transports.File({ filename: 'logs/uncaughtExceptions.log' }));
+
+//the unhandledRejection event is called when a promise/async method throws an exception
+process.on('unhandledRejection', (ex) => {
+    throw ex;
+});
 
 mongoose.connect('mongodb://localhost/tv_db')
 .then(() => dbDebugger('Connected to MongoDB tv_db database...'))

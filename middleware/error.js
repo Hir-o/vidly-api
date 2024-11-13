@@ -1,4 +1,3 @@
-const winston = require('winston');
 const logger = require('./logger');
 
 module.exports = function(ex, req, res, next){
